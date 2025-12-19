@@ -1,4 +1,4 @@
-import { BigInt, BigDecimal, Address, log } from '@graphprotocol/graph-ts'
+import { BigInt, BigDecimal, log } from '@graphprotocol/graph-ts'
 import { 
   Mint as MintEvent, 
   Burn as BurnEvent, 
@@ -14,7 +14,8 @@ import {
   Burn, 
   Swap, 
   Factory,
-  User
+  User,
+  LiquidityPosition
 } from '../../generated/schema'
 
 // Constants
@@ -40,43 +41,86 @@ function convertTokenToDecimal(tokenAmount: BigInt, exchangeDecimals: BigInt): B
   return tokenAmount.toBigDecimal().div(exponentToBigDecimal(exchangeDecimals))
 }
 
+function createLiquidityPosition(pairAddress: string, userAddress: string): LiquidityPosition {
+  let id = pairAddress.concat('-').concat(userAddress)
+  let position = LiquidityPosition.load(id)
+  if (position === null) {
+    position = new LiquidityPosition(id)
+    position.pair = pairAddress
+    position.user = userAddress
+    position.liquidityTokenBalance = ZERO_BD
+  }
+  return position as LiquidityPosition
+}
+
 export function handleTransfer(event: TransferEvent): void {
   let pair = Pair.load(event.address.toHexString())
   if (pair === null) return
 
   let from = event.params.from.toHexString()
   let to = event.params.to.toHexString()
+  let value = convertTokenToDecimal(event.params.value, BI_18)
+  let pairAddress = event.address.toHexString()
 
   // Handle mint (from zero address)
   if (from == ADDRESS_ZERO) {
-    pair.totalSupply = pair.totalSupply.plus(convertTokenToDecimal(event.params.value, BI_18))
+    pair.totalSupply = pair.totalSupply.plus(value)
     pair.save()
   }
 
   // Handle burn (to zero address)
-  if (to == ADDRESS_ZERO && from != event.address.toHexString()) {
-    pair.totalSupply = pair.totalSupply.minus(convertTokenToDecimal(event.params.value, BI_18))
+  if (to == ADDRESS_ZERO && from != pairAddress) {
+    pair.totalSupply = pair.totalSupply.minus(value)
     pair.save()
   }
 
-  // Create users
-  if (from != ADDRESS_ZERO && from != event.address.toHexString()) {
+  // Update FROM user position (decrease balance)
+  if (from != ADDRESS_ZERO && from != pairAddress) {
     let fromUser = User.load(from)
     if (fromUser === null) {
       fromUser = new User(from)
       fromUser.usdSwapped = ZERO_BD
       fromUser.save()
     }
+    
+    let fromPosition = createLiquidityPosition(pairAddress, from)
+    fromPosition.liquidityTokenBalance = fromPosition.liquidityTokenBalance.minus(value)
+    fromPosition.save()
+    
+    // Update LP count if position goes to zero
+    if (fromPosition.liquidityTokenBalance.equals(ZERO_BD)) {
+      pair.liquidityProviderCount = pair.liquidityProviderCount.minus(ONE_BI)
+      pair.save()
+    }
   }
 
-  if (to != ADDRESS_ZERO && to != event.address.toHexString()) {
+  // Update TO user position (increase balance)
+  if (to != ADDRESS_ZERO && to != pairAddress) {
     let toUser = User.load(to)
     if (toUser === null) {
       toUser = new User(to)
       toUser.usdSwapped = ZERO_BD
       toUser.save()
     }
+    
+    let toPosition = createLiquidityPosition(pairAddress, to)
+    let previousBalance = toPosition.liquidityTokenBalance
+    toPosition.liquidityTokenBalance = toPosition.liquidityTokenBalance.plus(value)
+    toPosition.save()
+    
+    // Update LP count if this is a new position
+    if (previousBalance.equals(ZERO_BD) && toPosition.liquidityTokenBalance.gt(ZERO_BD)) {
+      pair.liquidityProviderCount = pair.liquidityProviderCount.plus(ONE_BI)
+      pair.save()
+    }
   }
+
+  log.info('Transfer: {} from {} to {} value {}', [
+    pairAddress,
+    from,
+    to,
+    value.toString()
+  ])
 }
 
 export function handleSync(event: SyncEvent): void {
