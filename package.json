@@ -1,0 +1,17 @@
+{
+  "name": "quickswap-monad-subgraph",
+  "version": "1.0.0",
+  "description": "QuickSwap V2 Subgraph for Monad Mainnet",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy:goldsky": "npx goldsky subgraph deploy quickswap-monad/v1 --path .",
+    "create:local": "graph create --node http://localhost:8020/ quickswap-monad",
+    "deploy:local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 quickswap-monad"
+  },
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.68.0",
+    "@graphprotocol/graph-ts": "^0.32.0"
+  },
+  "dependencies": {}
+}

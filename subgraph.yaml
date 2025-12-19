@@ -1,0 +1,68 @@
+specVersion: 0.0.5
+description: QuickSwap V2 on Monad Mainnet
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Factory
+    network: monad
+    source:
+      address: "0x5D36Bfea5074456d383e47F5b4df12186eD6e858"
+      abi: Factory
+      startBlock: 42911473
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/factory.ts
+      entities:
+        - Pair
+        - Token
+        - QuickswapFactory
+      abis:
+        - name: Factory
+          file: ./abis/Factory.json
+        - name: Pair
+          file: ./abis/Pair.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: PairCreated(indexed address,indexed address,address,uint256)
+          handler: handlePairCreated
+templates:
+  - kind: ethereum/contract
+    name: Pair
+    network: monad
+    source:
+      abi: Pair
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/pair.ts
+      entities:
+        - Pair
+        - Token
+        - Transaction
+        - Mint
+        - Burn
+        - Swap
+        - Bundle
+      abis:
+        - name: Pair
+          file: ./abis/Pair.json
+        - name: Factory
+          file: ./abis/Factory.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Mint(indexed address,uint256,uint256)
+          handler: handleMint
+        - event: Burn(indexed address,uint256,uint256,indexed address)
+          handler: handleBurn
+        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleSwap
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Sync(uint112,uint112)
+          handler: handleSync

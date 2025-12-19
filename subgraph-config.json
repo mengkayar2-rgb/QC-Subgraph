@@ -1,0 +1,49 @@
+{
+  "network": "monad",
+  "chainId": 143,
+  "subgraphName": "quickswap-monad",
+  "version": "v2",
+  "buildStatus": "SUCCESS",
+  "deployStatus": "LIVE",
+  "contracts": {
+    "factory": {
+      "address": "0x5D36Bfea5074456d383e47F5b4df12186eD6e858",
+      "startBlock": 42911473
+    },
+    "router": {
+      "address": "0xa45cc7A52C5179BD24076994Ef253Eb1FB1A9929"
+    },
+    "wmon": {
+      "address": "0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A"
+    },
+    "quick": {
+      "address": "0x6d42eFC8B2EC16cC61B47BfC2ABb38D570Faabb5"
+    },
+    "masterChef": {
+      "address": "0x1CF67a6Ac3E049E78E6BC22642126C6AB8511d03"
+    }
+  },
+  "initCodeHash": "0xc5046c562153e8288204e770fc7fec0968c4fb899ad6d483cec04005fa165600",
+  "fee": {
+    "totalPercent": 0.5,
+    "lpPercent": 0.4,
+    "protocolPercent": 0.1,
+    "feeWallet": "0x6e28299f60ffA113389FFe096e6Eaf9357FC9d29"
+  },
+  "deployment": {
+    "provider": "goldsky",
+    "project": "memeswap-test",
+    "status": "LIVE",
+    "synced": "100%",
+    "endpoint": "https://api.goldsky.com/api/public/project_cmj7jnjbsro2301stdkaz9yfm/subgraphs/quickswap-monad/v2/gn"
+  },
+  "queries": {
+    "factories": "{ factories { id pairCount txCount totalVolumeUSD } }",
+    "pairs": "{ pairs(first: 10) { id token0 { symbol } token1 { symbol } reserve0 reserve1 } }",
+    "swaps": "{ swaps(first: 20, orderBy: timestamp, orderDirection: desc) { id pair { id } amount0In amount1Out } }"
+  },
+  "indexedData": {
+    "firstPair": "0xcf4dc3db3223ee91ff52da4e110ba8abfb943843",
+    "pairTokens": "WMON/QUICK"
+  }
+}

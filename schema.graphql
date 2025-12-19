@@ -1,0 +1,171 @@
+# Factory entity - query with "factories" or "quickswapFactories"
+type Factory @entity {
+  id: ID!
+  pairCount: Int!
+  totalVolumeUSD: BigDecimal!
+  totalVolumeMON: BigDecimal!
+  untrackedVolumeUSD: BigDecimal!
+  totalLiquidityUSD: BigDecimal!
+  totalLiquidityMON: BigDecimal!
+  txCount: BigInt!
+}
+
+type Token @entity {
+  id: ID!
+  symbol: String!
+  name: String!
+  decimals: BigInt!
+  totalSupply: BigInt!
+  tradeVolume: BigDecimal!
+  tradeVolumeUSD: BigDecimal!
+  untrackedVolumeUSD: BigDecimal!
+  txCount: BigInt!
+  totalLiquidity: BigDecimal!
+  derivedMON: BigDecimal
+  pairBase: [Pair!]! @derivedFrom(field: "token0")
+  pairQuote: [Pair!]! @derivedFrom(field: "token1")
+}
+
+type Pair @entity {
+  id: ID!
+  token0: Token!
+  token1: Token!
+  reserve0: BigDecimal!
+  reserve1: BigDecimal!
+  totalSupply: BigDecimal!
+  reserveMON: BigDecimal!
+  reserveUSD: BigDecimal!
+  trackedReserveMON: BigDecimal!
+  token0Price: BigDecimal!
+  token1Price: BigDecimal!
+  volumeToken0: BigDecimal!
+  volumeToken1: BigDecimal!
+  volumeUSD: BigDecimal!
+  untrackedVolumeUSD: BigDecimal!
+  txCount: BigInt!
+  createdAtTimestamp: BigInt!
+  createdAtBlockNumber: BigInt!
+  liquidityProviderCount: BigInt!
+  mints: [Mint!]! @derivedFrom(field: "pair")
+  burns: [Burn!]! @derivedFrom(field: "pair")
+  swaps: [Swap!]! @derivedFrom(field: "pair")
+}
+
+type Transaction @entity {
+  id: ID!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  mints: [Mint!]!
+  burns: [Burn!]!
+  swaps: [Swap!]!
+}
+
+type Mint @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pair: Pair!
+  to: Bytes!
+  liquidity: BigDecimal!
+  sender: Bytes
+  amount0: BigDecimal
+  amount1: BigDecimal
+  logIndex: BigInt
+  amountUSD: BigDecimal
+  feeTo: Bytes
+  feeLiquidity: BigDecimal
+}
+
+type Burn @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pair: Pair!
+  liquidity: BigDecimal!
+  sender: Bytes
+  amount0: BigDecimal
+  amount1: BigDecimal
+  to: Bytes
+  logIndex: BigInt
+  amountUSD: BigDecimal
+  needsComplete: Boolean!
+  feeTo: Bytes
+  feeLiquidity: BigDecimal
+}
+
+type Swap @entity {
+  id: ID!
+  transaction: Transaction!
+  timestamp: BigInt!
+  pair: Pair!
+  sender: Bytes!
+  from: Bytes!
+  to: Bytes!
+  amount0In: BigDecimal!
+  amount1In: BigDecimal!
+  amount0Out: BigDecimal!
+  amount1Out: BigDecimal!
+  amountUSD: BigDecimal!
+  logIndex: BigInt
+}
+
+type Bundle @entity {
+  id: ID!
+  monPrice: BigDecimal!
+}
+
+type PairDayData @entity {
+  id: ID!
+  date: Int!
+  pairAddress: Bytes!
+  token0: Token!
+  token1: Token!
+  reserve0: BigDecimal!
+  reserve1: BigDecimal!
+  totalSupply: BigDecimal!
+  reserveUSD: BigDecimal!
+  dailyVolumeToken0: BigDecimal!
+  dailyVolumeToken1: BigDecimal!
+  dailyVolumeUSD: BigDecimal!
+  dailyTxns: BigInt!
+}
+
+type TokenDayData @entity {
+  id: ID!
+  date: Int!
+  token: Token!
+  dailyVolumeToken: BigDecimal!
+  dailyVolumeUSD: BigDecimal!
+  dailyVolumeMON: BigDecimal!
+  dailyTxns: BigInt!
+  totalLiquidityToken: BigDecimal!
+  totalLiquidityUSD: BigDecimal!
+  totalLiquidityMON: BigDecimal!
+  priceUSD: BigDecimal!
+}
+
+type QuickswapDayData @entity {
+  id: ID!
+  date: Int!
+  dailyVolumeUSD: BigDecimal!
+  dailyVolumeMON: BigDecimal!
+  dailyVolumeUntracked: BigDecimal!
+  totalVolumeUSD: BigDecimal!
+  totalVolumeMON: BigDecimal!
+  totalLiquidityUSD: BigDecimal!
+  totalLiquidityMON: BigDecimal!
+  txCount: BigInt!
+}
+
+type LiquidityPosition @entity {
+  id: ID!
+  user: User!
+  pair: Pair!
+  liquidityTokenBalance: BigDecimal!
+}
+
+type User @entity {
+  id: ID!
+  liquidityPositions: [LiquidityPosition!]! @derivedFrom(field: "user")
+  usdSwapped: BigDecimal!
+}
