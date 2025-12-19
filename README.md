@@ -1,6 +1,6 @@
 # QuickSwap Subgraph - Monad Mainnet
 
-Subgraph untuk tracking QuickSwap V2 DEX di Monad Mainnet.
+Subgraph tracking QuickSwap V2 DEX di Monad Mainnet.
 
 ## Contract Addresses
 
